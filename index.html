@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Dating with me ~</title>
+<style>
+  /* =========================================================
+     只改这里就能换文案/头像/食物，其余不用动 →见 <script> 里的 CONFIG
+     ========================================================= */
+  :root {
+    --pink: #ff2d9b;
+    --pink-soft: #ffd1ea;
+    --ink: #1b1b1f;
+    --card: #f4f4f5;
+    --shadow: 6px 6px 0 rgba(0,0,0,.85);
+    --radius: 26px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: linear-gradient(160deg, #ffe3f1 0%, #f3e8ff 45%, #e7f0ff 100%);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100dvh; padding: 20px; overflow-x: hidden;
+  }
+
+  /* 第一屏：整屏铺满 Kanye 熊花纹壁纸，卡片正常居中（任何屏幕自动适配） */
+  body.holding {
+    background: url("bears_bg.jpg") center center / cover no-repeat,
+                linear-gradient(160deg, #ffe3f1 0%, #f3e8ff 45%, #e7f0ff 100%);
+  }
+  /* 花纹背景很花，给卡片外面加一圈淡紫底框，让它跳出来 */
+  body.holding #s1 { box-shadow: var(--shadow), 0 0 0 9px rgba(232,223,255,.8); }
+
+  /* 卡片舞台 */
+  .stage { width: 100%; max-width: 420px; position: relative; z-index: 2; }
+  .card {
+    background: #fbfbfc; border: 3px solid #111; border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 30px 24px 34px; text-align: center;
+    animation: pop .45s cubic-bezier(.2,1.3,.5,1) both;
+  }
+  @keyframes pop { from { transform: scale(.85) translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+  .appicon {
+    width: 78px; height: 78px; border-radius: 20px; margin: 0 auto 18px;
+    display: flex; align-items: center; justify-content: center; font-size: 40px;
+    border: 3px solid #111; box-shadow: 3px 3px 0 rgba(0,0,0,.85); background: var(--pink);
+    overflow: hidden;
+  }
+  .appicon img { width: 100%; height: 100%; object-fit: cover; }
+
+  h1 { font-size: 27px; line-height: 1.25; margin: 6px 0 12px; font-weight: 800; letter-spacing: -.5px; }
+  .sub { font-size: 15px; color: #555; line-height: 1.55; margin: 0 auto 22px; max-width: 300px; }
+
+  /* 按钮 */
+  .btn {
+    font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer;
+    border: 3px solid #111; border-radius: 999px; padding: 14px 26px;
+    box-shadow: 3px 3px 0 rgba(0,0,0,.85); transition: transform .12s, box-shadow .12s;
+    background: #fff; color: #111;
+  }
+  .btn:active { transform: translate(2px,2px); box-shadow: 1px 1px 0 rgba(0,0,0,.85); }
+  .btn-yes { background: var(--pink); color: #fff; }
+  .btn-block { width: 100%; display: block; }
+  .row { display: flex; gap: 14px; justify-content: center; align-items: center; flex-wrap: wrap; }
+
+  /* 表单 */
+  label.f { display: block; text-align: left; font-size: 14px; font-weight: 700; margin: 16px 4px 8px; }
+  input.f, select.f {
+    width: 100%; font-family: inherit; font-size: 16px; padding: 14px 16px;
+    border: 3px solid #111; border-radius: 16px; box-shadow: 3px 3px 0 rgba(0,0,0,.85);
+    background: #fff; color: #111; -webkit-appearance: none; appearance: none;
+  }
+  select.f { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23111' stroke-width='3'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 44px; }
+
+  /* 食物九宫格 */
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+  .food {
+    background: #fff; border: 3px solid #111; border-radius: 16px; box-shadow: 3px 3px 0 rgba(0,0,0,.85);
+    padding: 12px 4px 10px; cursor: pointer; transition: transform .1s, background .1s;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+  }
+  .food .e { font-size: 26px; } .food .n { font-size: 13px; font-weight: 700; }
+  .food:active { transform: scale(.94); }
+  .food.sel { background: var(--pink); color: #fff; }
+
+  /* 确认卡的小方格 */
+  .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 22px 0 6px; }
+  .fact { border: 3px solid #111; border-radius: 16px; box-shadow: 3px 3px 0 rgba(0,0,0,.85); padding: 12px 14px; text-align: left; background:#fff; }
+  .fact.full { grid-column: 1 / -1; }
+  .fact .k { font-size: 11px; letter-spacing: 1.5px; color: #888; font-weight: 800; }
+  .fact .v { font-size: 20px; font-weight: 800; margin-top: 2px; }
+
+  .hearts { margin-top: 16px; font-size: 20px; letter-spacing: 6px; color: var(--pink); }
+  .tiny { font-size: 12px; color: #999; margin-top: 14px; }
+  .hidden { display: none !important; }
+
+  /* 倒计时 */
+  .countdown { margin-top: 20px; font-size: 15px; color: #555; line-height: 1.9; }
+  .countdown b {
+    display: inline-block; min-width: 40px; margin: 0 2px; padding: 4px 0;
+    font-size: 22px; font-weight: 800; color: #fff; background: var(--pink);
+    border: 2px solid #111; border-radius: 10px; box-shadow: 2px 2px 0 rgba(0,0,0,.85);
+  }
+  .countdown .done { font-size: 18px; font-weight: 800; color: var(--pink); }
+
+  /* 音乐开关（右下角悬浮） */
+  #musicToggle {
+    position: fixed; right: 16px; bottom: 16px; z-index: 20;
+    width: 48px; height: 48px; border-radius: 50%; font-size: 20px; cursor: pointer;
+    background: #fff; border: 3px solid #111; box-shadow: 3px 3px 0 rgba(0,0,0,.85);
+    display: flex; align-items: center; justify-content: center; padding: 0;
+  }
+  #yt { position: fixed; width: 0; height: 0; overflow: hidden; pointer-events: none; opacity: 0; }
+
+  /* 花瓣 */
+  .petal { position: fixed; top: -30px; z-index: 1; pointer-events: none; user-select: none; will-change: transform; }
+</style>
+</head>
+<body class="holding">
+  <div class="stage">
+    <!-- STEP 1 邀请（背景是 Kanye 熊花纹壁纸） -->
+    <section class="card" id="s1">
+      <div class="appicon" id="icon1"></div>
+      <h1 id="askTitle"></h1>
+      <p class="sub" id="askSub"></p>
+      <div class="row" id="askRow">
+        <button class="btn btn-yes" id="yesBtn">愿意 ❤️</button>
+        <button class="btn" id="noBtn">不要 👋</button>
+      </div>
+    </section>
+
+    <!-- STEP 2 二次确认（自嘲反转） -->
+    <section class="card hidden" id="s2">
+      <div class="appicon" id="icon2" style="background:#ff4136">🥜</div>
+      <h1>等下，你真的点了愿意？？😭</h1>
+      <p class="sub">我都已经准备好被你点"不要"了。</p>
+      <button class="btn btn-yes btn-block" id="reallyBtn">好啦好啦 →</button>
+    </section>
+
+    <!-- STEP 3 选时间 -->
+    <section class="card hidden" id="s3">
+      <div class="appicon" style="background:var(--pink-soft)">📅</div>
+      <h1>所以…你什么时候有空？☺️</h1>
+      <label class="f">选一天 🗓️</label>
+      <input class="f" type="date" id="dateInput" />
+      <label class="f">几点见？⏰</label>
+      <select class="f" id="timeInput">
+        <option value="" disabled selected>选择时间…</option>
+      </select>
+      <div style="height:20px"></div>
+      <button class="btn btn-yes btn-block" id="timeBtn">确定时间 ❤️</button>
+    </section>
+
+    <!-- STEP 4 选吃的 -->
+    <section class="card hidden" id="s4">
+      <h1>我们吃点什么？🍽️✨</h1>
+      <p class="sub">挑一个今天的约会氛围。</p>
+      <div class="grid" id="foodGrid"></div>
+    </section>
+
+    <!-- STEP 5 确认卡 -->
+    <section class="card hidden" id="s5">
+      <div class="appicon" id="icon5"></div>
+      <h1>真开心你没有拒绝～<br />我会准时来接你！</h1>
+      <p class="sub" id="finalLine"></p>
+      <div class="facts">
+        <div class="fact"><div class="k">DATE</div><div class="v" id="fDate">—</div></div>
+        <div class="fact"><div class="k">TIME</div><div class="v" id="fTime">—</div></div>
+        <div class="fact full"><div class="k">MENU</div><div class="v" id="fFood">—</div></div>
+      </div>
+      <div class="countdown" id="countdown"></div>
+      <div class="hearts">💗 💗 💗 💗 💗</div>
+      <button class="btn btn-block" id="icsBtn" style="margin-top:18px">📅 加入我的日历</button>
+      <p class="tiny" id="notifyState"></p>
+    </section>
+  </div>
+
+  <button id="musicToggle" class="hidden" title="音乐开关">🔈</button>
+  <div id="yt"></div>
+
+<script>
+/* ================= 只改这个 CONFIG ================= */
+const CONFIG = {
+  // 第一屏卡片图标：Kanye 熊 Dropout Bear（已抠掉白底的透明 png，缺失退回 emoji）
+  avatar: { image: "bear.png", emoji: "🐶", fit: "contain", bg: "#ff2d9b" },
+  // 最后一页头像：Kanye Kirby（只抠掉周围黑底、脸保留的透明 png）
+  finalAvatar: { image: "kirby.png", emoji: "🐶", fit: "contain", bg: "#ffffff" },
+
+  // Kanye 彩蛋：wink = 第二屏“你真的点了愿意？”眨眼头像
+  //   （第一屏背景壁纸 bears_bg.jpg 在 CSS 的 body.holding 里换）
+  kanye: { wink: "kanye_wink.jpg" },
+
+  // 背景音乐：优先放本地 mp3（国内可用，无需梯子）；没有 mp3 时自动退回 YouTube
+  //   把 Bound 2 音频命名为 bound2.mp3 放进本文件夹即可；start = 从第几秒开始
+  //   默认在对方第一次点击时自动播放；右下角喇叭可自行静音
+  music: { mp3: "bound2.mp3", videoId: "BBAtAM7vtgc", start: 52, enabled: true },
+
+  // 第一屏文案
+  askTitle: "可以和我一起约会嘛？ ！🌸",
+  askSub:   "系统检测到：对方已经紧张到开始写网页了。",
+
+  // 最后一屏那句话，{date}/{time}/{food} 会自动替换
+  finalLine: "{date} {time}，我们去吃{food}。带好胃口，我带好路线。",
+
+  // 可选时间段
+  times: ["中午 12:00","下午 14:00","下午 16:00","傍晚 17:00","傍晚 18:00","晚上 19:00","晚上 20:00"],
+
+  // 食物九宫格
+  foods: [
+    {e:"🍕",n:"披萨"},{e:"🍣",n:"寿司"},{e:"🍲",n:"火锅"},
+    {e:"🥩",n:"烤肉"},{e:"🥟",n:"早茶"},{e:"🍜",n:"拉面"},
+    {e:"🌶️",n:"麻辣烫"},{e:"🦞",n:"小龙虾"},{e:"🍢",n:"烧烤"},
+    {e:"✍️",n:"其他"}
+  ],
+
+  // 通知：部署到 Vercel 并配好密钥后，这里保持 "/api/notify" 即可
+  // 本地直接双击打开时收不到通知（正常），确认卡照样显示
+  notifyEndpoint: "/api/notify"
+};
+/* ================================================== */
+
+const $ = (id) => document.getElementById(id);
+const state = { date: "", time: "", food: "" };
+
+// —— 初始化头像 & 文案 ——
+// 有图片就用图片（可自动抠掉纯黑背景）；图片缺失/加载失败则退回 emoji，页面不会坏
+function renderAvatar(el, a) {
+  a = a || CONFIG.avatar;
+  el.textContent = a.emoji || ""; // 先占位
+  if (!a.image) return;
+  el.style.background = a.bg || "#fff";
+  const img = new Image();
+  img.onload = function () {
+    let src = a.image;
+    if (a.knockoutBlack) {
+      try {
+        const c = document.createElement("canvas");
+        c.width = img.naturalWidth; c.height = img.naturalHeight;
+        const ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0);
+        const id = ctx.getImageData(0, 0, c.width, c.height), p = id.data;
+        for (let i = 0; i < p.length; i += 4) {
+          const mx = Math.max(p[i], p[i+1], p[i+2]);
+          if (mx < 40) p[i+3] = 0;                         // 纯黑 → 透明
+          else if (mx < 85) p[i+3] = Math.round((mx-40)/45*255); // 边缘羽化，避免锯齿
+        }
+        ctx.putImageData(id, 0, 0);
+        src = c.toDataURL("image/png");
+      } catch (e) { /* 跨域等异常就用原图 */ }
+    }
+    el.innerHTML = `<img src="${src}" alt="" style="width:100%;height:100%;object-fit:${a.fit||'contain'}">`;
+  };
+  img.onerror = function () { el.textContent = a.emoji; }; // 图还没放进来 → 保持 emoji
+  img.src = a.image;
+}
+renderAvatar($("icon1"), CONFIG.avatar); renderAvatar($("icon5"), CONFIG.finalAvatar || CONFIG.avatar);
+$("askTitle").textContent = CONFIG.askTitle;
+$("askSub").textContent = CONFIG.askSub;
+
+// —— Kanye 彩蛋：第二屏眨眼头像（第一屏背景壁纸由 CSS body.holding 控制） ——
+(function setupKanye(){
+  const k = CONFIG.kanye || {};
+  if (k.wink) {
+    const im = new Image();
+    im.onload = () => { $("icon2").innerHTML = `<img src="${k.wink}" alt="" style="width:100%;height:100%;object-fit:cover">`; $("icon2").style.background = "#000"; };
+    im.src = k.wink; // onerror 时保留 🥜
+  }
+})();
+
+// 时间下拉
+CONFIG.times.forEach(t => { const o = document.createElement("option"); o.value = t; o.textContent = t; $("timeInput").appendChild(o); });
+
+// 食物九宫格
+CONFIG.foods.forEach(f => {
+  const d = document.createElement("div");
+  d.className = "food"; d.innerHTML = `<span class="e">${f.e}</span><span class="n">${f.n}</span>`;
+  d.onclick = () => { state.food = f.n; goFinal(); };
+  $("foodGrid").appendChild(d);
+});
+
+// —— 切屏 ——
+function show(id){
+  ["s1","s2","s3","s4","s5"].forEach(s => $(s).classList.add("hidden"));
+  const el=$(id); el.classList.remove("hidden"); el.style.animation="none"; void el.offsetWidth; el.style.animation=""; window.scrollTo(0,0);
+  document.body.classList.toggle("holding", id === "s1"); // 第一屏才显示 808s 封面
+}
+
+// STEP1 -> STEP2
+$("yesBtn").onclick = () => show("s2");
+$("reallyBtn").onclick = () => show("s3");
+
+// "不要" 温柔躲避 + 越来越可怜（点不到但不硬逼）
+let noTries = 0;
+const beg = ["不要 👋","再想想？🥺","真的吗…😢","别走嘛 🫶","就一顿饭～","我请客！🍜"];
+$("noBtn").onclick = () => {
+  noTries++;
+  const yes = $("yesBtn"), no = $("noBtn");
+  no.textContent = beg[Math.min(noTries, beg.length-1)];
+  no.style.transform = `scale(${Math.max(0.55, 1 - noTries*0.12)})`;
+  yes.style.fontSize = `${17 + noTries*3}px`;
+  yes.style.padding = `${14 + noTries*2}px ${26 + noTries*4}px`;
+  if (noTries >= 3) { // 之后开始躲光标
+    no.style.position = "relative";
+    no.style.left = (Math.random()*80 - 40) + "px";
+    no.style.top  = (Math.random()*40 - 20) + "px";
+  }
+};
+
+// STEP3 确定时间
+$("timeBtn").onclick = () => {
+  if (!$("dateInput").value) { alert("先选个日子嘛 😊"); return; }
+  if (!$("timeInput").value) { alert("几点见呀？⏰"); return; }
+  state.date = $("dateInput").value; state.time = $("timeInput").value;
+  show("s4");
+};
+
+// STEP5 生成确认卡 + 撒花 + 通知 + 持久化倒计时
+const STORE_KEY = "dateInvite.v1";
+function fmtDate(iso){ const [y,m,d]=iso.split("-"); return `${+m}月${+d}日`; }
+function computeTarget(iso, timeStr){
+  const [y,m,d] = iso.split("-").map(Number);
+  const mt = String(timeStr).match(/(\d{1,2}):(\d{2})/);
+  const hh = mt ? +mt[1] : 18, mm = mt ? +mt[2] : 0;
+  return new Date(y, m-1, d, hh, mm, 0, 0).getTime();
+}
+function renderCard(){
+  $("fDate").textContent = fmtDate(state.date);
+  $("fTime").textContent = state.time;
+  $("fFood").textContent = state.food;
+  $("finalLine").textContent = CONFIG.finalLine
+    .replace("{date}", fmtDate(state.date)).replace("{time}", state.time).replace("{food}", state.food);
+}
+let cdTimer = null;
+function startCountdown(target){
+  const el = $("countdown");
+  if (cdTimer) clearInterval(cdTimer);
+  function tick(){
+    let diff = target - Date.now();
+    if (diff <= 0){ el.innerHTML = '<span class="done">💗 就是现在，我来接你啦！</span>'; clearInterval(cdTimer); return; }
+    const dd = Math.floor(diff/86400000); diff -= dd*86400000;
+    const hh = Math.floor(diff/3600000); diff -= hh*3600000;
+    const mi = Math.floor(diff/60000);   diff -= mi*60000;
+    const ss = Math.floor(diff/1000);
+    el.innerHTML = `距离我们的约会还有<br><b>${dd}</b> 天 <b>${hh}</b> 时 <b>${mi}</b> 分 <b>${ss}</b> 秒`;
+  }
+  tick(); cdTimer = setInterval(tick, 1000);
+}
+function goFinal(){
+  const target = computeTarget(state.date, state.time);
+  localStorage.setItem(STORE_KEY, JSON.stringify({ date: state.date, time: state.time, food: state.food, target }));
+  renderCard();
+  show("s5");
+  burst();
+  sendNotify();
+  startCountdown(target);
+}
+// 重开时：如果之前已经约定过，直接回到成交卡并继续倒计时（不再重复通知）
+// 想重新体验：在网址后面加 ?reset 即可清空
+(function restore(){
+  if (new URLSearchParams(location.search).has("reset")) { localStorage.removeItem(STORE_KEY); return; }
+  const raw = localStorage.getItem(STORE_KEY);
+  if (!raw) return;
+  try {
+    const o = JSON.parse(raw);
+    if (!o.date || !o.target) return;
+    state.date = o.date; state.time = o.time; state.food = o.food;
+    renderCard(); show("s5"); startCountdown(o.target);
+  } catch(e){}
+})();
+
+// —— 一键加入日历 (.ics) ——
+$("icsBtn").onclick = () => {
+  const hm = (state.time.match(/(\d{1,2}):(\d{2})/) || [,"18","00"]);
+  const [ , hh, mm ] = hm;
+  const dt = state.date.replace(/-/g,"");
+  const start = `${dt}T${String(hh).padStart(2,"0")}${mm}00`;
+  const endH = String((parseInt(hh)+2)%24).padStart(2,"0");
+  const end = `${dt}T${endH}${mm}00`;
+  const ics = ["BEGIN:VCALENDAR","VERSION:2.0","BEGIN:VEVENT",
+    `SUMMARY:约会 · ${state.food}`,`DTSTART:${start}`,`DTEND:${end}`,
+    `DESCRIPTION:${CONFIG.finalLine.replace("{date}",fmtDate(state.date)).replace("{time}",state.time).replace("{food}",state.food)}`,
+    "END:VEVENT","END:VCALENDAR"].join("\r\n");
+  const blob = new Blob([ics], {type:"text/calendar"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "我们的约会.ics"; a.click();
+};
+
+// —— 通知本人（部署后生效） ——
+async function sendNotify(){
+  const st = $("notifyState");
+  const summary = `${fmtDate(state.date)} ${state.time} · ${state.food}`;
+  try {
+    const r = await fetch(CONFIG.notifyEndpoint, {
+      method:"POST", headers:{"Content-Type":"application/json"},
+      body: JSON.stringify({ date: fmtDate(state.date), time: state.time, food: state.food, summary })
+    });
+    if (r.ok) st.textContent = "💌 已经偷偷告诉他了～";
+    else throw new Error();
+  } catch(e){ st.textContent = "📸 记得截图这张卡发给他哦"; }
+}
+
+// —— 撒花瓣 ——
+function burst(){
+  const chars = ["🌸","💗","🌷","✨","💕"];
+  for (let i=0;i<28;i++){
+    const p = document.createElement("div");
+    p.className = "petal"; p.textContent = chars[i%chars.length];
+    p.style.left = Math.random()*100 + "vw";
+    p.style.fontSize = (14 + Math.random()*20) + "px";
+    const dur = 3 + Math.random()*3, delay = Math.random()*1.2;
+    p.style.animation = `fall ${dur}s linear ${delay}s forwards`;
+    document.body.appendChild(p);
+    setTimeout(()=>p.remove(), (dur+delay)*1000+200);
+  }
+}
+// 花瓣下落关键帧（动态注入，避免占样式篇幅）
+const kf = document.createElement("style");
+kf.textContent = "@keyframes fall{to{transform:translateY(110vh) rotate(360deg);opacity:0}}";
+document.head.appendChild(kf);
+
+// —— 背景音乐：优先本地 mp3（国内可用，无需梯子），没有就退回 YouTube ——
+const M = CONFIG.music || {};
+const musicStart = M.start || 0;
+let mode = null, musicOn = false, audioEl = null, ytPlayer = null, ytReady = false;
+const mbtn = $("musicToggle");
+function refreshBtn(){ if (mbtn) mbtn.textContent = musicOn ? "🔊" : "🔇"; }
+function showBtn(){ if (mbtn){ mbtn.classList.remove("hidden"); refreshBtn(); } }
+
+function playMusic(){
+  if (mode === "mp3" && audioEl){
+    const go = () => { try { if (audioEl.currentTime < 1) audioEl.currentTime = musicStart; } catch(e){} const p = audioEl.play(); if (p && p.then) p.then(()=>{ musicOn = true; refreshBtn(); }).catch(()=>{}); else { musicOn = true; refreshBtn(); } };
+    if (audioEl.readyState >= 2) go(); else audioEl.addEventListener("canplay", go, { once:true });
+  } else if (mode === "yt" && ytReady){
+    try { ytPlayer.seekTo(musicStart, true); ytPlayer.unMute(); ytPlayer.setVolume(60); ytPlayer.playVideo(); musicOn = true; refreshBtn(); } catch(e){}
+  }
+}
+function pauseMusic(){
+  if (mode === "mp3" && audioEl) audioEl.pause();
+  else if (mode === "yt" && ytPlayer) ytPlayer.pauseVideo();
+  musicOn = false; refreshBtn();
+}
+function initYT(){
+  if (!M.enabled || !M.videoId) return;
+  mode = "yt";
+  window.onYouTubeIframeAPIReady = function(){
+    ytPlayer = new YT.Player("yt", { height:"0", width:"0", videoId: M.videoId,
+      playerVars:{ autoplay:0, controls:0, start:musicStart, playsinline:1, rel:0 },
+      events:{ onReady:function(){ ytReady = true; } } });
+  };
+  const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
+  showBtn();
+}
+// 先探测本地 mp3；能播就用它，报错（文件不存在）就退回 YouTube
+if (M.mp3){
+  audioEl = new Audio(M.mp3); audioEl.loop = true; audioEl.preload = "auto";
+  let decided = false;
+  audioEl.addEventListener("canplay", function(){ if (!decided){ decided = true; mode = "mp3"; try { audioEl.currentTime = musicStart; } catch(e){} showBtn(); } }, { once:true });
+  audioEl.addEventListener("error",   function(){ if (!decided){ decided = true; initYT(); } }, { once:true });
+} else { initYT(); }
+
+if (mbtn) mbtn.onclick = function(e){ e.stopPropagation(); if (musicOn) pauseMusic(); else playMusic(); };
+// 首次点击页面任意处就开始播放（满足浏览器自动播放策略）
+function kickoff(){ if (!mode) return; if (mode === "yt" && !ytReady) return; playMusic(); if (musicOn) document.removeEventListener("click", kickoff); }
+document.addEventListener("click", kickoff);
+</script>
+</body>
+</html>
