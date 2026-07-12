@@ -96,6 +96,7 @@
 
   .hearts { margin-top: 16px; font-size: 20px; letter-spacing: 6px; color: var(--pink); }
   .tiny { font-size: 12px; color: #999; margin-top: 14px; }
+  .reset-link { color: #c7c7cc; text-decoration: underline; cursor: pointer; }
   .hidden { display: none !important; }
 
   /* 倒计时 */
@@ -177,6 +178,7 @@
       <div class="hearts">💗 💗 💗 💗 💗</div>
       <button class="btn btn-block" id="icsBtn" style="margin-top:18px">📅 加入我的日历</button>
       <p class="tiny" id="notifyState"></p>
+      <p class="tiny"><a class="reset-link" id="resetLink">🔄 重新体验一遍</a></p>
     </section>
   </div>
 
@@ -389,6 +391,9 @@ $("icsBtn").onclick = () => {
   const blob = new Blob([ics], {type:"text/calendar"});
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "我们的约会.ics"; a.click();
 };
+
+// —— “重新体验”入口：清掉本地记录，回到第一屏（方便测试，她点也无害，就是重看一遍） ——
+$("resetLink").onclick = () => { try { localStorage.removeItem(STORE_KEY); } catch(e){} location.href = location.pathname; };
 
 // —— 通知本人（部署后生效） ——
 async function sendNotify(){
