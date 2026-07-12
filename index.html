@@ -178,7 +178,6 @@
       <div class="hearts">💗 💗 💗 💗 💗</div>
       <button class="btn btn-block" id="icsBtn" style="margin-top:18px">📅 加入我的日历</button>
       <p class="tiny" id="notifyState"></p>
-      <p class="tiny"><a class="reset-link" id="resetLink">🔄 重新体验一遍</a></p>
     </section>
   </div>
 
@@ -337,6 +336,7 @@ function renderCard(){
   $("fFood").textContent = state.food;
   $("finalLine").textContent = CONFIG.finalLine
     .replace("{date}", fmtDate(state.date)).replace("{time}", state.time).replace("{food}", state.food);
+  $("notifyState").textContent = "📸 记得截图保存发给他哦"; // 底部一直显示
 }
 let cdTimer = null;
 function startCountdown(target){
@@ -359,7 +359,6 @@ function goFinal(){
   renderCard();
   show("s5");
   burst();
-  sendNotify();
   startCountdown(target);
 }
 // 重开时：如果之前已经约定过，直接回到成交卡并继续倒计时（不再重复通知）
@@ -392,8 +391,14 @@ $("icsBtn").onclick = () => {
   const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "我们的约会.ics"; a.click();
 };
 
-// —— “重新体验”入口：清掉本地记录，回到第一屏（方便测试，她点也无害，就是重看一遍） ——
-$("resetLink").onclick = () => { try { localStorage.removeItem(STORE_KEY); } catch(e){} location.href = location.pathname; };
+// —— 暗号：连点最后一页头像 3 下 → 清记录回第一屏（不显示任何入口，只有你知道，方便测试） ——
+(function(){
+  let taps = 0, timer = null;
+  $("icon5").addEventListener("click", () => {
+    taps++; clearTimeout(timer); timer = setTimeout(() => { taps = 0; }, 800);
+    if (taps >= 3) { taps = 0; try { localStorage.removeItem(STORE_KEY); } catch(e){} location.href = location.pathname; }
+  });
+})();
 
 // —— 通知本人（部署后生效） ——
 async function sendNotify(){
