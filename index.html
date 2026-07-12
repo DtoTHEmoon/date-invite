@@ -429,8 +429,10 @@ function showBtn(){ if (mbtn){ mbtn.classList.remove("hidden"); refreshBtn(); } 
 
 function playMusic(){
   if (mode === "mp3" && audioEl){
-    const go = () => { try { if (audioEl.currentTime < 1) audioEl.currentTime = musicStart; } catch(e){} const p = audioEl.play(); if (p && p.then) p.then(()=>{ musicOn = true; refreshBtn(); }).catch(()=>{}); else { musicOn = true; refreshBtn(); } };
-    if (audioEl.readyState >= 2) go(); else audioEl.addEventListener("canplay", go, { once:true });
+    // 手机上必须在手势里立刻 play()，不能等缓冲；播起来后再定位到高潮
+    const onGo = () => { try { if (audioEl.currentTime < 1) audioEl.currentTime = musicStart; } catch(e){} musicOn = true; refreshBtn(); };
+    const p = audioEl.play();
+    if (p && p.then) p.then(onGo).catch(()=>{}); else onGo();
   } else if (mode === "yt" && ytReady){
     try { ytPlayer.seekTo(musicStart, true); ytPlayer.unMute(); ytPlayer.setVolume(60); ytPlayer.playVideo(); musicOn = true; refreshBtn(); } catch(e){}
   }
@@ -451,12 +453,13 @@ function initYT(){
   const tag = document.createElement("script"); tag.src = "https://www.youtube.com/iframe_api"; document.head.appendChild(tag);
   showBtn();
 }
-// 先探测本地 mp3；能播就用它，报错（文件不存在）就退回 YouTube
+// 本地有 mp3 就直接用它（同源文件，一定在）；手机上不等 canplay，
+// 避免 iOS 不预加载音频导致按钮不出现、播放不触发
 if (M.mp3){
-  audioEl = new Audio(M.mp3); audioEl.loop = true; audioEl.preload = "auto";
-  let decided = false;
-  audioEl.addEventListener("canplay", function(){ if (!decided){ decided = true; mode = "mp3"; try { audioEl.currentTime = musicStart; } catch(e){} showBtn(); } }, { once:true });
-  audioEl.addEventListener("error",   function(){ if (!decided){ decided = true; initYT(); } }, { once:true });
+  audioEl = new Audio(M.mp3); audioEl.loop = true; audioEl.preload = "auto"; audioEl.playsInline = true;
+  mode = "mp3"; showBtn();
+  audioEl.addEventListener("canplay", function(){ try { if (audioEl.currentTime < 1) audioEl.currentTime = musicStart; } catch(e){} }, { once:true });
+  audioEl.addEventListener("error", function(){ if (mode === "mp3" && !musicOn){ mode = null; initYT(); } }, { once:true });
 } else { initYT(); }
 
 if (mbtn) mbtn.onclick = function(e){ e.stopPropagation(); if (musicOn) pauseMusic(); else playMusic(); };
